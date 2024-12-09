@@ -56,6 +56,18 @@ func (app *application) mount() http.Handler {
 				r.Post("/comments", app.createPostComment)
 			})
 		})
+
+		r.Route("/users", func(r chi.Router) {
+			r.Route("/{user_id}", func(r chi.Router) {
+				r.Use(app.usersContextMiddleware)
+				r.Get("/", app.getUserHandler)
+				r.Patch("/", app.updateUserHandler)
+				r.Delete("/", app.deleteUserHandler)
+
+				r.Put("/follow", app.followUserHandler)
+				r.Put("/unfollow", app.unfollowUserHandler)
+			})
+		})
 	})
 
 	return r

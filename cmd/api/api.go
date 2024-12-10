@@ -1,7 +1,10 @@
 package main
 
 import (
-	"goBackendEngineering/internal/store"
+	"fmt"
+	"github.com/lucianboboc/goBackendEngineering/docs"
+	"github.com/lucianboboc/goBackendEngineering/internal/store"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"log/slog"
 	"net/http"
 	"time"
@@ -17,9 +20,10 @@ type application struct {
 }
 
 type config struct {
-	addr string
-	db   dbConfig
-	env  string
+	addr   string
+	db     dbConfig
+	env    string
+	apiURL string
 }
 
 type dbConfig struct {
@@ -41,6 +45,11 @@ func (app *application) mount() http.Handler {
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
+
+		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)
+		r.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL(docsURL),
+		))
 
 		r.Route("/posts", func(r chi.Router) {
 			r.Get("/", app.getPostsHandler)
@@ -78,6 +87,11 @@ func (app *application) mount() http.Handler {
 }
 
 func (app *application) run(mux http.Handler) error {
+	// docs
+	docs.SwaggerInfo.Version = version
+	docs.SwaggerInfo.BasePath = "/v1"
+	docs.SwaggerInfo.Host = app.config.apiURL
+
 	srv := http.Server{
 		Addr:         ":" + app.config.addr,
 		Handler:      mux,

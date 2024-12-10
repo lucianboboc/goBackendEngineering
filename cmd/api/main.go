@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/joho/godotenv"
-	"goBackendEngineering/internal/db"
-	"goBackendEngineering/internal/env"
-	"goBackendEngineering/internal/store"
+	"github.com/lucianboboc/goBackendEngineering/internal/db"
+	"github.com/lucianboboc/goBackendEngineering/internal/env"
+	"github.com/lucianboboc/goBackendEngineering/internal/store"
 	"log"
 	"log/slog"
 	"os"
@@ -16,6 +16,23 @@ type Post struct {
 	Title string `json:"title" validate:"required,max=100"`
 }
 
+//	@title			GopherSocial API
+//	@description	API for GopherSocial, a social network for gophers.
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @BasePath					/v1
+//
+// @SecurityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -23,7 +40,8 @@ func main() {
 	}
 
 	cfg := config{
-		addr: env.GetString("ADDR", "8080"),
+		addr:   env.GetString("ADDR", "8080"),
+		apiURL: env.GetString("EXTERNAL_URL", "localhost:8080"),
 		db: dbConfig{
 			dsn:          env.GetString("DB_DSN", "postgres://postgres:postgres@localhost/postgres?sslmode=disable"),
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),

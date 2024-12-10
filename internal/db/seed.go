@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
-	"goBackendEngineering/internal/store"
+	"github.com/lucianboboc/goBackendEngineering/internal/store"
 	"log"
 	"math/rand"
 )

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"goBackendEngineering/internal/db"
-	"goBackendEngineering/internal/env"
-	store2 "goBackendEngineering/internal/store"
+	"github.com/lucianboboc/goBackendEngineering/internal/db"
+	"github.com/lucianboboc/goBackendEngineering/internal/env"
+	"github.com/lucianboboc/goBackendEngineering/internal/store"
 )
 
 func main() {
@@ -16,6 +16,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	store := store2.NewPostgresStorage(conn)
-	db.Seed(store)
+	storage := store.NewPostgresStorage(conn)
+	db.Seed(storage)
 }

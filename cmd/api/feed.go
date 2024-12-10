@@ -1,7 +1,7 @@
 package main
 
 import (
-	"goBackendEngineering/internal/store"
+	"github.com/lucianboboc/goBackendEngineering/internal/store"
 	"net/http"
 )
 

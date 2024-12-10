@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/go-chi/chi/v5"
-	"goBackendEngineering/internal/store"
+	"github.com/lucianboboc/goBackendEngineering/internal/store"
 	"net/http"
 	"strconv"
 )

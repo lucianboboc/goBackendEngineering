@@ -17,6 +17,7 @@ type PostsStorage interface {
 	GetPostByID(ctx context.Context, id int64) (*Post, error)
 	UpdatePost(ctx context.Context, post *Post) error
 	DeletePost(ctx context.Context, postID int64) error
+	GetUserFeed(ctx context.Context, userID int64) ([]PostWithMetadata, error)
 }
 
 type UsersStorage interface {

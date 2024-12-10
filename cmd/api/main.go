@@ -5,7 +5,6 @@ import (
 	"github.com/lucianboboc/goBackendEngineering/internal/db"
 	"github.com/lucianboboc/goBackendEngineering/internal/env"
 	"github.com/lucianboboc/goBackendEngineering/internal/store"
-	"log"
 	"log/slog"
 	"os"
 )
@@ -34,9 +33,13 @@ type Post struct {
 // @name						Authorization
 // @description
 func main() {
+	// Logger
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		logger.Error("Error loading .env file")
+		os.Exit(1)
 	}
 
 	cfg := config{
@@ -51,6 +54,7 @@ func main() {
 		env: env.GetString("ENV", "development"),
 	}
 
+	// Database
 	db, err := db.New(
 		cfg.db.dsn,
 		cfg.db.maxOpenConns,
@@ -58,23 +62,23 @@ func main() {
 		cfg.db.maxIdleTime,
 	)
 	if err != nil {
-		log.Panic(err)
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 
 	defer db.Close()
-	log.Println("database connection established...")
+	logger.Info("database connection established...")
 	store := store.NewPostgresStorage(db)
 
 	app := &application{
 		config: cfg,
 		store:  store,
-		logger: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+		logger: logger,
 	}
 
 	mux := app.mount()
 	if err := app.run(mux); err != nil {
-		log.Fatal(err)
+		logger.Error(err.Error())
 		os.Exit(1)
 	}
 }

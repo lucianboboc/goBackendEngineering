@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 )
 
 var (
@@ -21,10 +22,12 @@ type PostsStorage interface {
 }
 
 type UsersStorage interface {
-	Create(context.Context, *User) error
+	Create(context.Context, *sql.Tx, *User) error
 	GetUserByID(context.Context, int64) (*User, error)
 	UpdateUser(ctx context.Context, user *User) error
 	DeleteUser(ctx context.Context, userID int64) error
+	CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error
+	Activate(ctx context.Context, token string) error
 }
 
 type CommentsStorage interface {
@@ -51,4 +54,18 @@ func NewPostgresStorage(db *sql.DB) Storage {
 		Comments:  &CommentsStore{db},
 		Followers: &FollowersStore{db},
 	}
+}
+
+func withTx(db *sql.DB, ctx context.Context, f func(*sql.Tx) error) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	if err := f(tx); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }

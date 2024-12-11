@@ -7,6 +7,7 @@ import (
 	"github.com/lucianboboc/goBackendEngineering/internal/store"
 	"log/slog"
 	"os"
+	"time"
 )
 
 const version = "0.0.1"
@@ -52,6 +53,9 @@ func main() {
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
 		env: env.GetString("ENV", "development"),
+		mail: mailConfig{
+			exp: time.Hour * 24 * 3,
+		},
 	}
 
 	// Database

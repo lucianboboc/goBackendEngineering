@@ -41,6 +41,37 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ActivateUser godoc
+//
+//	@Summary		Activates/Register a user
+//	@Description	Activates/Register a user by invitation token
+//	@Tags			users
+//	@Produce		json
+//	@Param			token	path		string	true	"Invitation token"
+//	@Success		204		{string}	string	"User Activated"
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/users/activate/{token} [put]
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	err := app.store.Users.Activate(r.Context(), token)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.badRequestResponse(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	err = app.jsonResponse(w, http.StatusNoContent, nil)
+	if err != nil {
+		app.internalServerError(w, r, err)
+	}
+}
+
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)
 
@@ -64,7 +95,7 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		user.Email = *payload.Email
 	}
 	if payload.Password != nil {
-		user.Password = *payload.Password
+		_ = user.Password.Set(*payload.Password)
 	}
 
 	err = app.store.Users.UpdateUser(r.Context(), user)

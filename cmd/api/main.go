@@ -57,9 +57,12 @@ func main() {
 		env: env.GetString("ENV", "development"),
 		mail: mailConfig{
 			exp:       time.Hour * 24 * 3,
-			fromEmail: env.GetString("SENDGRID_FROM_EMAIL", ""),
+			fromEmail: env.GetString("FROM_EMAIL", ""),
 			sendGrid: sendGridConfig{
 				apiKey: env.GetString("SENDGRID_API_KEY", ""),
+			},
+			maiLTrap: mailTrapConfig{
+				apiKey: env.GetString("MAILTRAP_API_KEY", ""),
 			},
 		},
 	}

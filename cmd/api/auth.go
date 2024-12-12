@@ -3,8 +3,11 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"github.com/google/uuid"
+	"github.com/lucianboboc/goBackendEngineering/internal/mailer"
 	"github.com/lucianboboc/goBackendEngineering/internal/store"
+	"log/slog"
 	"net/http"
 )
 
@@ -54,6 +57,31 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	err := app.store.Users.CreateAndInvite(r.Context(), user, hashToken, app.config.mail.exp)
 	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	activationURL := fmt.Sprintf("%s/confirm/%s", app.config.frontendURL, plainToken)
+	isProdEnv := app.config.env == "production"
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: activationURL,
+	}
+
+	err = app.mailer.Send(mailer.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
+	if err != nil {
+		app.logger.Info("error sending welcome email", slog.Any("error", err.Error()))
+
+		// rollback user creation if email fails (SAGA pattern)
+		if err := app.store.Users.DeleteUser(r.Context(), user.ID); err != nil {
+			app.logger.Info("error deleting user", slog.Any("error", err.Error()))
+			app.internalServerError(w, r, err)
+			return
+		}
+
 		app.internalServerError(w, r, err)
 		return
 	}

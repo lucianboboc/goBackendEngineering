@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/lucianboboc/goBackendEngineering/docs"
+	"github.com/lucianboboc/goBackendEngineering/internal/mailer"
 	"github.com/lucianboboc/goBackendEngineering/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"log/slog"
@@ -17,18 +18,26 @@ type application struct {
 	config config
 	store  store.Storage
 	logger *slog.Logger
+	mailer mailer.Client
 }
 
 type config struct {
-	addr   string
-	db     dbConfig
-	env    string
-	apiURL string
-	mail   mailConfig
+	addr        string
+	db          dbConfig
+	env         string
+	apiURL      string
+	mail        mailConfig
+	frontendURL string
 }
 
 type mailConfig struct {
-	exp time.Duration
+	exp       time.Duration
+	fromEmail string
+	sendGrid  sendGridConfig
+}
+
+type sendGridConfig struct {
+	apiKey string
 }
 
 type dbConfig struct {

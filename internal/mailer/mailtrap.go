@@ -23,22 +23,22 @@ func NewMailTrapClient(apiKey, fromEmail string) (*MailTrapClient, error) {
 	}, nil
 }
 
-func (m *MailTrapClient) Send(templateFile, username, email string, data any, isSandbox bool) error {
+func (m *MailTrapClient) Send(templateFile, username, email string, data any, isSandbox bool) (int, error) {
 	tmpl, err := template.ParseFS(FS, "templates/"+templateFile)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	subject := new(bytes.Buffer)
 	err = tmpl.ExecuteTemplate(subject, "subject", data)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	body := new(bytes.Buffer)
 	err = tmpl.ExecuteTemplate(body, "body", data)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	message := gomail.NewMessage()
@@ -50,8 +50,8 @@ func (m *MailTrapClient) Send(templateFile, username, email string, data any, is
 	dialer := gomail.NewDialer("live.smtp.mailtrap.io", 587, "api", m.apiKey)
 
 	if err := dialer.DialAndSend(message); err != nil {
-		return err
+		return -1, err
 	}
 
-	return nil
+	return 200, nil
 }

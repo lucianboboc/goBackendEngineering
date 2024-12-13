@@ -36,12 +36,12 @@ func (app *application) createPostsHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var userID int64 = 1
+	user := getUserFromCtx(r)
 	post := &store.Post{
 		Content: payload.Content,
 		Title:   payload.Title,
 		Tags:    payload.Tags,
-		UserID:  userID,
+		UserID:  user.ID,
 	}
 	err := app.store.Posts.Create(r.Context(), post)
 	if err != nil {
@@ -55,6 +55,19 @@ func (app *application) createPostsHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// getPostsHandler godoc
+//
+//	@Summary		Fetches all posts
+//	@Description	Fetches all posts
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}		store.Post
+//	@Failure		400	{object}	error
+//	@Failure		404	{object}	error
+//	@Failure		500	{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts [get]
 func (app *application) getPostsHandler(w http.ResponseWriter, r *http.Request) {
 	posts, err := app.store.Posts.GetAllPosts(r.Context())
 	if err != nil {

@@ -28,6 +28,7 @@ type UsersStorage interface {
 	DeleteUser(ctx context.Context, userID int64) error
 	CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error
 	Activate(ctx context.Context, token string) error
+	GetByEmail(ctx context.Context, email string) (*User, error)
 }
 
 type CommentsStorage interface {

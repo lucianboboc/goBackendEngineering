@@ -34,6 +34,10 @@ func (p *password) Set(password string) error {
 	return nil
 }
 
+func (p *password) Check(password string) error {
+	return bcrypt.CompareHashAndPassword(p.hash, []byte(password))
+}
+
 type UsersStore struct {
 	db *sql.DB
 }
@@ -162,7 +166,7 @@ func (s *UsersStore) Activate(ctx context.Context, token string) error {
 }
 
 func (s *UsersStore) getUserFromInvitation(ctx context.Context, tx *sql.Tx, token string) (*User, error) {
-	query := `SELECT u.id, u.username, u.email, u.created_at, u.is_active
+	query := `SELECT u.id, u.username, u.email, u.password, u.created_at, u.is_active
 	FROM users as u
 	JOIN user_invitations as ui ON u.id = ui.user_id
 	WHERE ui.token = $1 AND ui.expiry > $2`
@@ -178,6 +182,7 @@ func (s *UsersStore) getUserFromInvitation(ctx context.Context, tx *sql.Tx, toke
 		&user.ID,
 		&user.Username,
 		&user.Email,
+		&user.Password.hash,
 		&user.CreatedAt,
 		&user.IsActive,
 	)
@@ -265,4 +270,33 @@ func (s *UsersStore) deleteUser(ctx context.Context, tx *sql.Tx, userID int64) e
 	}
 
 	return nil
+}
+
+func (s *UsersStore) GetByEmail(ctx context.Context, email string) (*User, error) {
+	query := `SELECT id, username, email, password, created_at, is_active
+	FROM users
+	WHERE email = $1 AND is_active = true`
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	user := User{}
+	err := s.db.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password.hash,
+		&user.CreatedAt,
+		&user.IsActive,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
 }

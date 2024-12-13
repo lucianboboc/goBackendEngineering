@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/joho/godotenv"
+	"github.com/lucianboboc/goBackendEngineering/internal/auth"
 	"github.com/lucianboboc/goBackendEngineering/internal/db"
 	"github.com/lucianboboc/goBackendEngineering/internal/env"
 	"github.com/lucianboboc/goBackendEngineering/internal/mailer"
@@ -65,6 +66,17 @@ func main() {
 				apiKey: env.GetString("MAILTRAP_API_KEY", ""),
 			},
 		},
+		auth: authConfig{
+			basic: basicConfig{
+				user: env.GetString("AUTH_BASIC_USER", "admin"),
+				pass: env.GetString("AUTH_BASIC_PASS", "admin"),
+			},
+			token: tokenConfig{
+				secret: env.GetString("AUTH_TOKEN_SECRET", ""),
+				exp:    time.Hour * 24 * 3,
+				iss:    "gopherSocial",
+			},
+		},
 	}
 
 	// Database
@@ -85,11 +97,14 @@ func main() {
 
 	sendGridMailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
 
+	nwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
+
 	app := &application{
-		config: cfg,
-		store:  storage,
-		logger: logger,
-		mailer: sendGridMailer,
+		config:        cfg,
+		store:         storage,
+		logger:        logger,
+		mailer:        sendGridMailer,
+		authenticator: nwtAuthenticator,
 	}
 
 	mux := app.mount()

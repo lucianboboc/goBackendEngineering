@@ -6,18 +6,18 @@ import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import {ConfirmationPage} from "./ConfirmationPage.tsx";
 
 const router = createBrowserRouter([
-    {
-        path: '/',
-        element: <App />
-    },
-    {
-        path: '/confirm/:token',
-        element: <ConfirmationPage />
-    },
+	{
+		path: '/',
+		element: <App />
+	},
+	{
+		path: '/confirm/:token',
+		element: <ConfirmationPage />
+	},
 ])
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>,
+	<StrictMode>
+		<RouterProvider router={router} />
+	</StrictMode>,
 )

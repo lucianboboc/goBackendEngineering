@@ -1,5 +1,22 @@
 basePath: /v1
 definitions:
+  main.CreatePostPayload:
+    properties:
+      content:
+        maxLength: 100
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 1000
+        type: string
+    required:
+    - content
+    - tags
+    - title
+    type: object
   main.CreateUserTokenPayload:
     properties:
       email:
@@ -29,6 +46,15 @@ definitions:
     - email
     - password
     - username
+    type: object
+  main.UpdatePostPayload:
+    properties:
+      content:
+        maxLength: 100
+        type: string
+      title:
+        maxLength: 1000
+        type: string
     type: object
   store.Comment:
     properties:
@@ -101,6 +127,17 @@ definitions:
       version:
         type: integer
     type: object
+  store.Role:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      name:
+        type: string
+    type: object
   store.User:
     properties:
       created_at:
@@ -111,6 +148,10 @@ definitions:
         type: integer
       is_active:
         type: boolean
+      role:
+        $ref: '#/definitions/store.Role'
+      role_id:
+        type: integer
       username:
         type: string
     type: object
@@ -196,9 +237,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/store.Post'
-            type: array
+            $ref: '#/definitions/store.Post'
         "400":
           description: Bad Request
           schema: {}
@@ -211,6 +250,83 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Fetches all posts
+      tags:
+      - posts
+  /posts/:
+    post:
+      consumes:
+      - application/json
+      description: Create a new post
+      parameters:
+      - description: Post payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreatePostPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Create a post
+      tags:
+      - posts
+  /posts/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates a post by id
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Post payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdatePostPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Post'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Updates a post
       tags:
       - posts
   /users/{id}:

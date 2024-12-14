@@ -41,11 +41,16 @@ type FollowersStorage interface {
 	Unfollow(ctx context.Context, followerID, userID int64) error
 }
 
+type RolesStorage interface {
+	GetByName(ctx context.Context, role string) (*Role, error)
+}
+
 type Storage struct {
 	Posts     PostsStorage
 	Users     UsersStorage
 	Comments  CommentsStorage
 	Followers FollowersStorage
+	Roles     RolesStorage
 }
 
 func NewPostgresStorage(db *sql.DB) Storage {
@@ -54,6 +59,7 @@ func NewPostgresStorage(db *sql.DB) Storage {
 		Users:     &UsersStore{db},
 		Comments:  &CommentsStore{db},
 		Followers: &FollowersStore{db},
+		Roles:     &RolesStore{db},
 	}
 }
 

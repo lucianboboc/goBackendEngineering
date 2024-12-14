@@ -24,6 +24,21 @@ type UpdatePostPayload struct {
 	Title   *string `json:"title" validate:"omitempty,max=1000"`
 }
 
+// createPostsHandler godoc
+//
+//	@Summary		Create a post
+//	@Description	Create a new post
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Success		200		{object}	store.Post
+//	@Param			payload	body		CreatePostPayload	true	"Post payload"
+//	@Failure		400		{object}	error
+//	@Failure		401		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/ [post]
 func (app *application) createPostsHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -62,7 +77,7 @@ func (app *application) createPostsHandler(w http.ResponseWriter, r *http.Reques
 //	@Tags			posts
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{array}		store.Post
+//	@Success		200	{object}	store.Post
 //	@Failure		400	{object}	error
 //	@Failure		404	{object}	error
 //	@Failure		500	{object}	error
@@ -91,6 +106,22 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// updatePostHandler godoc
+//
+//	@Summary		Updates a post
+//	@Description	Updates a post by id
+//	@Tags			posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		int					true	"Post ID"
+//	@Param			payload	body		UpdatePostPayload	true	"Post payload"
+//	@Success		200		{object}	store.Post
+//	@Failure		400		{object}	error
+//	@Failure		401		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/{id} [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 

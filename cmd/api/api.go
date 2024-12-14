@@ -7,6 +7,7 @@ import (
 	"github.com/lucianboboc/goBackendEngineering/internal/auth"
 	"github.com/lucianboboc/goBackendEngineering/internal/mailer"
 	"github.com/lucianboboc/goBackendEngineering/internal/store"
+	"github.com/lucianboboc/goBackendEngineering/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"log/slog"
 	"net/http"
@@ -19,6 +20,7 @@ import (
 type application struct {
 	config        config
 	store         store.Storage
+	cacheStorage  cache.Storage
 	logger        *slog.Logger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
@@ -32,6 +34,14 @@ type config struct {
 	mail        mailConfig
 	frontendURL string
 	auth        authConfig
+	redisCfg    redisConfig
+}
+
+type redisConfig struct {
+	addr    string
+	pass    string
+	db      int
+	enabled bool
 }
 
 type authConfig struct {

@@ -6,6 +6,7 @@ import (
 	"github.com/lucianboboc/goBackendEngineering/internal/db"
 	"github.com/lucianboboc/goBackendEngineering/internal/env"
 	"github.com/lucianboboc/goBackendEngineering/internal/mailer"
+	"github.com/lucianboboc/goBackendEngineering/internal/ratelimiter"
 	"github.com/lucianboboc/goBackendEngineering/internal/store"
 	"github.com/lucianboboc/goBackendEngineering/internal/store/cache"
 	"github.com/redis/go-redis/v9"
@@ -85,6 +86,11 @@ func main() {
 				iss:    "gopherSocial",
 			},
 		},
+		ratelimiter: ratelimiter.Config{
+			RequestsPerTimeFrame: env.GetInt("RATE_LIMITER_REQUESTS_COUNT", 20),
+			TimeFrame:            time.Second * 5,
+			Enabled:              env.GetBool("RATE_LIMITER_ENABLED", true),
+		},
 	}
 
 	// Database
@@ -109,6 +115,12 @@ func main() {
 		logger.Info("redis cache connection established")
 	}
 
+	// Rate limiter
+	rateLimiter := ratelimiter.NewFixedWindowLimiter(
+		cfg.ratelimiter.RequestsPerTimeFrame,
+		cfg.ratelimiter.TimeFrame,
+	)
+
 	storage := store.NewPostgresStorage(db)
 	cacheStore := cache.NewRedisStorage(rdb)
 
@@ -123,6 +135,7 @@ func main() {
 		logger:        logger,
 		mailer:        sendGridMailer,
 		authenticator: nwtAuthenticator,
+		rateLimiter:   rateLimiter,
 	}
 
 	mux := app.mount()

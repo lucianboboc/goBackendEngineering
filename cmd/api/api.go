@@ -8,6 +8,7 @@ import (
 	"github.com/lucianboboc/goBackendEngineering/docs"
 	"github.com/lucianboboc/goBackendEngineering/internal/auth"
 	"github.com/lucianboboc/goBackendEngineering/internal/mailer"
+	"github.com/lucianboboc/goBackendEngineering/internal/ratelimiter"
 	"github.com/lucianboboc/goBackendEngineering/internal/store"
 	"github.com/lucianboboc/goBackendEngineering/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -29,6 +30,7 @@ type application struct {
 	logger        *slog.Logger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	rateLimiter   ratelimiter.Limiter
 }
 
 type config struct {
@@ -40,6 +42,7 @@ type config struct {
 	frontendURL string
 	auth        authConfig
 	redisCfg    redisConfig
+	ratelimiter ratelimiter.Config
 }
 
 type redisConfig struct {
@@ -105,11 +108,13 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(app.RateLimiterMiddleware)
 
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Route("/v1", func(r chi.Router) {
-		r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
+		//r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
+		r.Get("/health", app.healthCheckHandler)
 
 		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)
 		r.Get("/swagger/*", httpSwagger.Handler(

@@ -39,5 +39,7 @@ func (rl *FixedWindowRateLimiter) Allow(ip string) (bool, time.Duration) {
 
 func (rl *FixedWindowRateLimiter) resetCount(ip string) {
 	time.Sleep(rl.window)
+	rl.Lock()
 	delete(rl.clients, ip)
+	rl.Unlock()
 }

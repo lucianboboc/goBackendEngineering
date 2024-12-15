@@ -1,6 +1,7 @@
 package main
 
 import (
+	"expvar"
 	"github.com/joho/godotenv"
 	"github.com/lucianboboc/goBackendEngineering/internal/auth"
 	"github.com/lucianboboc/goBackendEngineering/internal/db"
@@ -12,6 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"log/slog"
 	"os"
+	"runtime"
 	"time"
 )
 
@@ -137,6 +139,15 @@ func main() {
 		authenticator: nwtAuthenticator,
 		rateLimiter:   rateLimiter,
 	}
+
+	// Metrics collected
+	expvar.NewString("version").Set(version)
+	expvar.Publish("database", expvar.Func(func() interface{} {
+		return db.Stats()
+	}))
+	expvar.Publish("goroutines", expvar.Func(func() interface{} {
+		return runtime.NumGoroutine()
+	}))
 
 	mux := app.mount()
 	if err := app.run(mux); err != nil {
